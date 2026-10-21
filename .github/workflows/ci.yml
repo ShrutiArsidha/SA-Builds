@@ -27,7 +27,7 @@ jobs:
 
       - name: Check Python Syntax
         run: |
-          python -m py_compile app.py test.py
+          python -m py_compile app.py test_app.py
 
   # Stage 2 - Build
   build:
