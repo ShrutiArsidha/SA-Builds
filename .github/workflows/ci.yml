@@ -114,9 +114,6 @@ jobs:
       - name: Smoke test placeholder
         run: echo "Pipeline sequence passed; live application smoke test is not configured yet."
 
-
-On Wed, 21 Oct, 2026, 12:10 pm Shruti Arsidha, <shruti.arsidha08@gmail.com> wrote:
-
 name: CI-CD Pipeline
 
 on:
