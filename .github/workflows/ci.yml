@@ -194,11 +194,3 @@ jobs:
     steps:
       - run: echo "Pipeline smoke test passed"
 
-app.py
-
-def main():
-    print("Hello from Python CI/CD app!")
-
-if __name__ == "__main__":
-    main()
-
