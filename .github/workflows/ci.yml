@@ -14,11 +14,11 @@ jobs:
     name: Validate
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Validate Python
-        run: python3 --version
+        run: |
+          python3 --version
+          python3 -m py_compile app.py
 
   build:
     name: Build
@@ -30,7 +30,6 @@ jobs:
         run: |
           mkdir -p dist
           cp app.py dist/app.py
-
       - uses: actions/upload-artifact@v4
         with:
           name: python-app
@@ -44,8 +43,9 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: python-app
-      - name: Test application
-        run: python3 -m py_compile app.py
+          path: dist
+      - name: Test packaged application
+        run: python3 -m py_compile dist/app.py
 
   security:
     name: Security
@@ -53,7 +53,7 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v4
-      - name: Check for accidental AWS keys
+      - name: Check for accidental AWS access keys
         run: |
           if grep -nE 'AKIA[0-9A-Z]{16}' app.py; then
             echo "Potential hard-coded AWS access key found"
@@ -61,16 +61,35 @@ jobs:
           fi
           echo "Basic credential check passed"
 
+  aws-authentication:
+    name: AWS OIDC Authentication
+    runs-on: ubuntu-latest
+    needs: security
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    needs: security
+    needs: aws-authentication
     steps:
-      - run: echo "Deployment stage ready; AWS OIDC and EC2 setup pending"
+      - name: Deployment placeholder
+        run: echo "AWS authentication succeeded; EC2 deployment is not configured yet."
 
   smoke-test:
     name: Smoke Test
     runs-on: ubuntu-latest
     needs: deploy
     steps:
-      - run: echo "Pipeline smoke test passed"
+      - name: Pipeline smoke test
+        run: echo "Pipeline sequence passed; live application test is not configured yet."
+
