@@ -1,5 +1,19 @@
-def main():
-    print("Hello from Python CI/CD app!")
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+class App(BaseHTTPRequestHandler):
+
+    def do_GET(self):
+
+        if self.path == "/health":
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"Application Healthy")
+
+        else:
+            self.send_response(404)
+            self.end_headers()
 
 if __name__ == "__main__":
-    main()
+    server = HTTPServer(("0.0.0.0", 8000), App)
+    print("Server Started")
+    server.serve_forever()

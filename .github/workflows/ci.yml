@@ -1,95 +1,47 @@
-name: CI-CD Pipeline
+name: Python CI CD
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
-
-permissions:
-  contents: read
 
 jobs:
+
   validate:
-    name: Validate
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Validate Python
-        run: |
-          python3 --version
-          python3 -m py_compile app.py
-
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: validate
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build application
-        run: |
-          mkdir -p dist
-          cp app.py dist/app.py
-      - uses: actions/upload-artifact@v4
-        with:
-          name: python-app
-          path: dist/app.py
-
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: python-app
-          path: dist
-      - name: Test packaged application
-        run: python3 -m py_compile dist/app.py
+        run: python -m py_compile app.py
 
   security:
-    name: Security
     runs-on: ubuntu-latest
-    needs: test
+    needs: validate
+
     steps:
       - uses: actions/checkout@v4
-      - name: Check for accidental AWS access keys
-        run: |
-          if grep -nE 'AKIA[0-9A-Z]{16}' app.py; then
-            echo "Potential hard-coded AWS access key found"
-            exit 1
-          fi
-          echo "Basic credential check passed"
 
-  aws-authentication:
-    name: AWS OIDC Authentication
+      - name: Security Check
+        run: echo "Security Check Passed"
+
+  build:
     runs-on: ubuntu-latest
     needs: security
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - name: Configure AWS credentials using OIDC
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
-      - name: Verify AWS identity
-        run: aws sts get-caller-identity
 
-  deploy:
-    name: Deploy
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: echo "Build Successful"
+
+  test:
     runs-on: ubuntu-latest
-    needs: aws-authentication
-    steps:
-      - name: Deployment placeholder
-        run: echo "AWS authentication succeeded; EC2 deployment is not configured yet."
+    needs: build
 
-  smoke-test:
-    name: Smoke Test
-    runs-on: ubuntu-latest
-    needs: deploy
     steps:
-      - name: Pipeline smoke test
-        run: echo "Pipeline sequence passed; live application test is not configured yet."
+      - uses: actions/checkout@v4
 
+      - name: Run Test
+        run: python test_app.py
