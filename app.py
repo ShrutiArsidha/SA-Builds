@@ -1,1 +1,1 @@
-print("Hello from EC2 Instance")
+print("Hello from app.py")
