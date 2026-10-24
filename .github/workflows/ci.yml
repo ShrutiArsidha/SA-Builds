@@ -68,7 +68,7 @@ jobs:
           scp -i key.pem \
           -o StrictHostKeyChecking=no \
           app.py \
-          ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ec2-user/
+          ec2-user@3.79.16.20:/home/ec2-user/
 
       - name: Start Application
         run: |
