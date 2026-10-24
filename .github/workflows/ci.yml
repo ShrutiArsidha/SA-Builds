@@ -57,7 +57,7 @@ jobs:
       - name: Deploy To EC2
         run: |
           aws ssm send-command \
-            --instance-ids i-0cf019cec42cdd2ec \
+            --instance-ids i-09f0df14b37edbc3c \
             --document-name AWS-RunShellScript \
             --parameters commands="echo Hello from EC2 Instance > /home/ec2-user/output.txt"
 
