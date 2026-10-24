@@ -56,10 +56,10 @@ jobs:
 
       - name: Deploy To EC2
         run: |
-          aws ssm send-command \
-            --instance-ids i-09f0df14b37edbc3c \
-            --document-name AWS-RunShellScript \
-            --parameters commands="git --version > /home/ec2-user/git.txt"
+        aws ssm send-command \
+          --instance-ids i-09f0df14b37edbc3c \
+          --document-name AWS-RunShellScript \
+          --parameters commands="git --version > /home/ec2-user/git.txt"
 
   smoke-test:
     runs-on: ubuntu-latest
