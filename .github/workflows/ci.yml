@@ -58,10 +58,7 @@ jobs:
           echo "USER=[${{ secrets.EC2_USER }}]"
           echo "HOST=[${{ secrets.EC2_HOST }}]"
 
-      - name: Create SSH Key
-        run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > key.pem
-          chmod 400 key.pem
+
 
       - name: Copy Application
         run: |
