@@ -53,25 +53,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Debug Secrets
+      - name: Create SSH Key
         run: |
-          echo "USER=[${{ secrets.EC2_USER }}]"
-          echo "HOST=[${{ secrets.EC2_HOST }}]"
+          echo '${{ secrets.SSH_PRIVATE_KEY }}' > key.pem
+          chmod 600 key.pem
 
+      - name: Check Key
+        run: |
+          ls -l key.pem
 
+      - name: Test SSH
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+          -i key.pem \
+          ec2-user@3.79.16.20 \
+          "hostname"
 
       - name: Copy Application
         run: |
-          scp -i key.pem \
-          -o StrictHostKeyChecking=no \
+          scp -o StrictHostKeyChecking=no \
+          -i key.pem \
           app.py \
           ec2-user@3.79.16.20:/home/ec2-user/
 
       - name: Start Application
         run: |
-          ssh -i key.pem \
-          -o StrictHostKeyChecking=no \
-          ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
+          ssh -o StrictHostKeyChecking=no \
+          -i key.pem \
+          ec2-user@3.79.16.20 \
           "pkill -f app.py || true && nohup python3 /home/ec2-user/app.py > app.log 2>&1 &"
 
   smoke-test:
@@ -82,4 +91,4 @@ jobs:
       - name: Verify Application
         run: |
           sleep 15
-          curl http://${{ secrets.EC2_HOST }}:8000/health
+          curl http://3.79.16.20:8000/health

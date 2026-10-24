@@ -15,5 +15,5 @@ class App(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     server = HTTPServer(("0.0.0.0", 8000), App)
-    print("Server Started")
+    print("Application Started")
     server.serve_forever()
