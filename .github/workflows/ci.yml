@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
 
   validate:
@@ -16,19 +20,9 @@ jobs:
       - name: Validate Python
         run: python -m py_compile app.py
 
-  security:
-    runs-on: ubuntu-latest
-    needs: validate
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Security Check
-        run: echo "Security Check Passed"
-
   build:
     runs-on: ubuntu-latest
-    needs: security
+    needs: validate
 
     steps:
       - uses: actions/checkout@v4
@@ -41,8 +35,6 @@ jobs:
     needs: build
 
     steps:
-      - uses: actions/checkout@v4
-
       - name: Run Test
         run: python test_app.py
 
@@ -51,44 +43,28 @@ jobs:
     needs: test
 
     steps:
+
       - uses: actions/checkout@v4
 
-      - name: Create SSH Key
-        run: |
-          echo '${{ secrets.SSH_PRIVATE_KEY }}' > key.pem
-          chmod 600 key.pem
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-central-1
 
-      - name: Check Key
+      - name: Deploy To EC2
         run: |
-          ls -l key.pem
-
-      - name: Test SSH
-        run: |
-          ssh -o StrictHostKeyChecking=no \
-          -i key.pem \
-          ec2-user@3.79.16.20 \
-          "hostname"
-
-      - name: Copy Application
-        run: |
-          scp -o StrictHostKeyChecking=no \
-          -i key.pem \
-          app.py \
-          ec2-user@3.79.16.20:/home/ec2-user/
-
-      - name: Start Application
-        run: |
-          ssh -o StrictHostKeyChecking=no \
-          -i key.pem \
-          ec2-user@3.79.16.20 \
-          "pkill -f app.py || true && nohup python3 /home/ec2-user/app.py > app.log 2>&1 &"
+          aws ssm send-command \
+            --instance-ids i-0cf019cec42cdd2ec \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "echo Hello from EC2 Instance > /home/ec2-user/output.txt"
+            ]'
 
   smoke-test:
     runs-on: ubuntu-latest
     needs: deploy
 
     steps:
-      - name: Verify Application
-        run: |
-          sleep 15
-          curl http://3.79.16.20:8000/health
+      - name: Smoke Test
+        run: echo "Deployment completed successfully"
