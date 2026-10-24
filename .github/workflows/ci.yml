@@ -45,12 +45,18 @@ jobs:
 
       - name: Run Test
         run: python test_app.py
+
   deploy:
     runs-on: ubuntu-latest
     needs: test
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Debug Secrets
+        run: |
+          echo "USER=[${{ secrets.EC2_USER }}]"
+          echo "HOST=[${{ secrets.EC2_HOST }}]"
 
       - name: Create SSH Key
         run: |
@@ -69,8 +75,7 @@ jobs:
           ssh -i key.pem \
           -o StrictHostKeyChecking=no \
           ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-          "pkill -f app.py || true
-          nohup python3 app.py > app.log 2>&1 &"
+          "pkill -f app.py || true && nohup python3 /home/ec2-user/app.py > app.log 2>&1 &"
 
   smoke-test:
     runs-on: ubuntu-latest
@@ -79,5 +84,5 @@ jobs:
     steps:
       - name: Verify Application
         run: |
-          sleep 10
+          sleep 15
           curl http://${{ secrets.EC2_HOST }}:8000/health
