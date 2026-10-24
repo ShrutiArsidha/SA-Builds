@@ -38,7 +38,7 @@ jobs:
       - name: Run Test
         run: echo "Test Successful"
 
-    dpeloy: Deploy To EC2
+    deploy: Deploy To EC2
     run: |
       aws ssm send-command \
         --instance-ids i-09f0df14b37edbc3c \
